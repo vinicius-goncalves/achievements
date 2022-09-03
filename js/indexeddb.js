@@ -79,7 +79,9 @@ export const updateAllAchievements = async (newData) => {
 
         const result = cursor.value
         if(result.type === 'achievements_db') {
-            cursor.update(newData)
+            const result = cursor.update({ type: 'achievements_db', achievements: { ...newData }})
+            result.addEventListener('success', () => console.log('Success'))
+            result.addEventListener('error', () => console.log('Error'))
             return
         }
         cursor.continue()
@@ -97,7 +99,7 @@ export const updateAchievement = async (newData, achievementType) => {
 
         const value = cursor.value
         if(value.type === achievementType) {
-            cursor.update({ type: 'achivements_db', achievements: { ...newData } })
+            cursor.update({ type: 'achievement_db', achievements: { ...newData } }).addEventListener('success', () => console.log('Success'))
             return
         }
 

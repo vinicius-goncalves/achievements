@@ -3,14 +3,21 @@
     <head>
         <title>Achievements</title>
         <style>
+
             h1 {
                 font-size: 3rem;
             }
             p {
                 font-size: 1.5rem;
                 user-select: none;
+                stroke: black;
             }
-            
+
+            li {
+                font-size: 1.4rem;
+            }
+
+    
         </style>
     </head>
     <body>
@@ -25,7 +32,11 @@
         </div>
 
         <div>
-            <p>Achievements done:</p>
+            <p>Total Achievements <span data-statistic="amount">?</span></p>
+            <p>Achievements complete: <span data-statistic="completed">?</span></p>
+            <p>Achievements undone: <span data-statistic="undone">?</span></p>
+            <p>Achievements</p>
+            <ul data-js="achievements"></ul>
         </div>
 
 

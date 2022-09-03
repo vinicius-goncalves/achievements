@@ -17,6 +17,8 @@ const USER = {
     getUser: function () {
         if(localStorage.getItem('userSettings')) {
             return JSON.parse(localStorage.getItem('userSettings'))
+        }else {
+            this.setupUser()
         }
     },
 
@@ -46,6 +48,9 @@ const userSettings = () => {
             user.selections = amount
             localStorage.setItem('userSettings', JSON.stringify(user))
         },
+        getValueByProperty: function(property) {
+            return user[property]
+        }
     }
 
     Object.setPrototypeOf(user, userSettingsProto)
@@ -94,18 +99,78 @@ setInterval(async () => {
     const { achievements } = result
 
     const achievementsValues = Object.values(achievements)
-    const userKeys = Object.keys(user)
-    
+
     for(let i = 0; i < achievementsValues.length; i++) {
-        for(let j = 0; j < userKeys.length; j++) {
-            if(userKeys[j] === 'id') { continue }
-            const greaterThan = user[userKeys[j]] >= achievementsValues[i].amount
-            const isSameType = userKeys[j] === achievementsValues[i].type
-            if(greaterThan && isSameType) {
-                achievementsValues[i].done = true
-                updateAchievement({ })
-            }
+        const achievementType = achievementsValues[i].type
+        const achievementAmount = achievementsValues[i].amount
+        const userValue = user.getValueByProperty(achievementType)
+        if(userValue >= achievementAmount) {
+            achievementsValues[i].done = true
+            updateAllAchievements(achievementsValues)
         }
     }
 
 }, 1000)
+
+setInterval(async () => {
+    
+    const dataStatistic = (statistic) => document.querySelector(`[data-statistic="${statistic}"]`)
+    const allDataStatistic = document.querySelectorAll('[data-statistic]')
+
+    const result = await getAchievements()
+    const { achievements } = result
+    const achievementsValues = Object.values(achievements)
+
+    const statisticPromise = new Promise(resolve => {
+
+        const achievementsAmount = achievementsValues.reduce((acc, item) => {
+            const done = item.done ? 'completed' : 'undone'
+            Object.defineProperty(acc, done, {
+                value: acc[done] + 1 || 1,
+                enumerable: true,
+                writable: true
+            })
+            return acc
+        }, {})
+    
+        achievementsAmount.amount = achievementsValues.length
+        resolve(achievementsAmount)
+        
+    })
+
+    allDataStatistic.forEach(statistic => {
+        statistic.textContent = 0
+    })
+
+    const objectResolved = await statisticPromise    
+    Object.keys(objectResolved).forEach(statistic => {
+        const infoDOM = dataStatistic(statistic)
+        infoDOM.textContent = objectResolved[statistic]
+    })
+
+    const ul = document.querySelector('[data-js="achievements"]')
+
+    const lis = achievementsValues.map(value => {
+
+        const { id, name, done } = value
+
+        const li = document.createElement('li')
+        li.textContent = `${name}`
+        li.dataset.liId = id
+
+        if(done) {
+            const del = document.createElement('del')
+            del.append(li)
+        }
+
+        return li
+        
+    })
+
+    lis.forEach(li => {
+        if(!document.querySelector(`[data-li-id="${li.dataset.liId}"]`)) {
+            ul.append(li)
+        }
+    })
+
+}, 2 * 1000)
